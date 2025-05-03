@@ -5,6 +5,7 @@ import TestProgressSystem from './components/TestProgressSystem'
 import Login from './components/auth/Login'
 import Signup from './components/auth/Signup'
 import ProfilePage from './components/profile/ProfilePage'
+import ModuleDetailsPage from './components/modules/ModuleDetailsPage'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 
 function App() {
@@ -29,6 +30,11 @@ function App() {
             <Route path="/profile" element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            } />
+            <Route path="/modules/:id" element={
+              <ProtectedRoute>
+                <ModuleDetailsPage />
               </ProtectedRoute>
             } />
             <Route path="/" element={
