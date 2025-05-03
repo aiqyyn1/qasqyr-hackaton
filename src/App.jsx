@@ -7,6 +7,7 @@ import Signup from './components/auth/Signup'
 import ProfilePage from './components/profile/ProfilePage'
 import ModuleDetailsPage from './components/modules/ModuleDetailsPage'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import Topic from "./components/topic/Topic.jsx";
 
 function App() {
   // Protected route component
@@ -30,6 +31,11 @@ function App() {
             <Route path="/profile" element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            } />
+            <Route path="/topics/:id" element={
+              <ProtectedRoute>
+                <Topic />
               </ProtectedRoute>
             } />
             <Route path="/modules/:id" element={
