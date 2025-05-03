@@ -66,16 +66,6 @@ export default function ModuleDetailsPage() {
             setTopics(moduleTopics);
             // Show all topics from the beginning
             setCurrentTestIndex(moduleTopics.length - 1);
-
-            // Auto scroll after topics are loaded
-            setTimeout(() => {
-              if (containerRef.current) {
-                containerRef.current.scrollTo({
-                  top: 0,
-                  behavior: 'auto'
-                });
-              }
-            }, 500);
           } else {
             console.log('Module has no topics, setting empty array');
             // Don't set any default topics if the module doesn't have them
@@ -98,9 +88,6 @@ export default function ModuleDetailsPage() {
 
     fetchModules();
   }, [id, tokens]);
-  console.log('Topics:', topics);
-  console.log('Current test index:', currentTestIndex);
-  console.log('Completed tests:', completedTests);
 
   // Calculate positions for circles based on topics
   const getCirclePositions = useCallback(() => {
@@ -182,21 +169,6 @@ export default function ModuleDetailsPage() {
 
     return positions;
   }, [canvasSize, topics]);
-
-  // Auto-scroll when topic list changes
-  useEffect(() => {
-    // If we have more than 5 topics and just added a new one, scroll to see new topic
-    if (topics.length > 5 && currentTestIndex >= topics.length - 1) {
-      setTimeout(() => {
-        if (containerRef.current) {
-          containerRef.current.scrollTo({
-            top: containerRef.current.scrollHeight,
-            behavior: 'smooth'
-          });
-        }
-      }, 300);
-    }
-  }, [topics.length, currentTestIndex]);
 
   // Auto-scroll to active content
   const scrollToActiveContent = useCallback(() => {
@@ -309,16 +281,6 @@ export default function ModuleDetailsPage() {
 
         // Move to the newly added topic
         setCurrentTestIndex(topics.length);
-
-        // Scroll into view after a short delay to allow rendering
-        setTimeout(() => {
-          if (containerRef.current) {
-            containerRef.current.scrollTo({
-              top: containerRef.current.scrollHeight,
-              behavior: 'smooth'
-            });
-          }
-        }, 100);
       }
 
       // Set uploaded file to show success message
@@ -505,13 +467,13 @@ export default function ModuleDetailsPage() {
       if (positions.length > 0) {
         const lastPos = positions[positions.length - 1];
 
-        // Position button to the left of the last circle
-        const buttonX = lastPos.x - lastPos.radius * 3;
+        // Position button to the RIGHT of the last circle
+        const buttonX = lastPos.x + lastPos.radius * 3;
 
         // Ensure button is visible in container
         setButtonPosition({
-          x: Math.max(100, buttonX), // Prevent button from going too far left
-          y: lastPos.y
+          x: Math.min(canvasSize.width - 100, buttonX), // Prevent button from going too far right
+          y: lastPos.y + 25
         });
       }
 
@@ -725,6 +687,7 @@ export default function ModuleDetailsPage() {
                   top: buttonPosition.y,
                   left: buttonPosition.x,
                   transform: 'translate(0, -50%)',
+                  zIndex: 10,
                   ...getButtonStyles()
                 }}
               >

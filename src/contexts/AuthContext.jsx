@@ -21,6 +21,11 @@ export function AuthProvider({ children }) {
     return savedTokens ? JSON.parse(savedTokens) : null;
   });
 
+  const [userRole, setUserRole] = useState(() => {
+    // Initialize user role from localStorage if available
+    return localStorage.getItem('user_role') || null;
+  });
+
   // Register function
   async function signup(username, email, password, confirmPassword) {
     try {
@@ -45,7 +50,7 @@ export function AuthProvider({ children }) {
   }
 
   // Login function
-  async function login(emailOrUsername, password) {
+  async function login(emailOrUsername, password, role = 'STUDENT') {
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -68,6 +73,10 @@ export function AuthProvider({ children }) {
       // Save tokens
       setTokens(data);
       localStorage.setItem('auth_tokens', JSON.stringify(data));
+
+      // Save role (in a real app this would come from the server/API)
+      setUserRole(role);
+      localStorage.setItem('user_role', role);
 
       // Fetch user info using the token
       await fetchUserInfo(data.access_token);
@@ -105,7 +114,9 @@ export function AuthProvider({ children }) {
   function logout() {
     setCurrentUser(null);
     setTokens(null);
+    setUserRole(null);
     localStorage.removeItem('auth_tokens');
+    localStorage.removeItem('user_role');
   }
 
   // Check for existing token and fetch user info on load
@@ -122,16 +133,19 @@ export function AuthProvider({ children }) {
       setLoading(false);
     };
 
+
     initAuth();
   }, [tokens?.access_token]);
 
   const value = {
     currentUser,
     tokens,
+    userRole,
     signup,
     login,
     logout,
-    isAuthenticated: !!tokens?.access_token
+    isAuthenticated: !!tokens?.access_token,
+    isTeacher: userRole === 'TEACHER'
   };
 
   return (

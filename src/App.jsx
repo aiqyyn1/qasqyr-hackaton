@@ -6,15 +6,36 @@ import Login from './components/auth/Login'
 import Signup from './components/auth/Signup'
 import ProfilePage from './components/profile/ProfilePage'
 import ModuleDetailsPage from './components/modules/ModuleDetailsPage'
+import TeacherPanel from './components/teacher/TeacherPanel'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 
 function App() {
   // Protected route component
   const ProtectedRoute = ({ children }) => {
-    const { isAuthenticated, currentUser } = useAuth();
+    const { isAuthenticated, currentUser, tokens } = useAuth();
+    console.log('ProtectedRoute - Tokens:', tokens);
 
     if (!isAuthenticated) {
       return <Navigate to="/login" />;
+    }
+
+    return children;
+  };
+
+  const TeacherRoute = ({ children }) => {
+    const { isAuthenticated, currentUser, isTeacher } = useAuth();
+    console.log('TeacherRoute - isAuthenticated:', isAuthenticated);
+    console.log('TeacherRoute - isTeacher:', isTeacher);
+
+    if (!isAuthenticated) {
+      console.log('TeacherRoute - Not authenticated, redirecting to login');
+      return <Navigate to="/login" />;
+    }
+
+    // Check if the user has the teacher role
+    if (!isTeacher) {
+      console.log('TeacherRoute - Not a teacher, redirecting to profile');
+      return <Navigate to="/profile" />;
     }
 
     return children;
@@ -36,6 +57,11 @@ function App() {
               <ProtectedRoute>
                 <ModuleDetailsPage />
               </ProtectedRoute>
+            } />
+            <Route path="/teacher" element={
+              <TeacherRoute>
+                <TeacherPanel />
+              </TeacherRoute>
             } />
             <Route path="/" element={
               <ProtectedRoute>

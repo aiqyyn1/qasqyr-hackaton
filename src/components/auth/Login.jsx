@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 export default function Login() {
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('STUDENT');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -16,8 +17,8 @@ export default function Login() {
     try {
       setError('');
       setLoading(true);
-      await login(emailOrUsername, password);
-      navigate('/');
+      await login(emailOrUsername, password, role);
+      navigate(role === 'TEACHER' ? '/teacher' : '/');
     } catch (error) {
       setError(error.message || 'Failed to sign in');
     } finally {
@@ -71,6 +72,32 @@ export default function Login() {
                 className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-200"
                 placeholder="••••••••"
               />
+            </div>
+
+            <div>
+              <label className="block text-gray-300 text-sm font-medium mb-2" htmlFor="role">
+                Login as
+              </label>
+              <div className="flex space-x-4">
+                <div
+                  onClick={() => setRole('STUDENT')}
+                  className={`flex-1 py-3 px-4 rounded-lg cursor-pointer transition-all duration-200 text-center ${role === 'STUDENT'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-700/50 text-gray-300 border border-gray-600 hover:border-blue-400'
+                    }`}
+                >
+                  Student
+                </div>
+                <div
+                  onClick={() => setRole('TEACHER')}
+                  className={`flex-1 py-3 px-4 rounded-lg cursor-pointer transition-all duration-200 text-center ${role === 'TEACHER'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-700/50 text-gray-300 border border-gray-600 hover:border-blue-400'
+                    }`}
+                >
+                  Teacher
+                </div>
+              </div>
             </div>
 
             <button
