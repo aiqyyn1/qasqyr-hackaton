@@ -341,10 +341,10 @@ export default function ModuleDetailsPage() {
   const handleCanvasClick = (e) => {
     console.log('Canvas clicked, hovered circle:', hoveredCircle);
 
-    // Allow clicking on any accessible circle
-    if (hoveredCircle !== null && hoveredCircle <= currentTestIndex) {
-      console.log('Triggering file upload from canvas click for topic:', topics[hoveredCircle].name);
-      triggerFileUpload();
+    // If hovering over a circle, navigate to the topic page
+    if (hoveredCircle !== null && topics[hoveredCircle]) {
+      const topicId = topics[hoveredCircle].id;
+      navigate(`/topics/${topicId}`);
     }
   };
 
