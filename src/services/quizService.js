@@ -1,3 +1,5 @@
+const API_URL = 'http://172.20.10.2:8080/api';
+
 const mockQuizData = {
     id: 1,
     content: [
@@ -43,27 +45,76 @@ const mockQuizData = {
 
 export const quizService = {
     getQuiz: async (quizId) => {
-        // In the future, this will be a real API call
-        // const response = await axios.get(`/api/quiz/${quizId}`);
-        // return response.data;
-        
-        // For now, return mock data
-        return mockQuizData;
+        try {
+            const token = localStorage.getItem('auth_tokens');
+            if (!token) {
+                throw new Error('No auth token found');
+            }
+
+            const { access_token } = JSON.parse(token);
+            
+            const response = await fetch(`${API_URL}/modules/topics/${quizId}/generate-quiz`, {
+                headers: {
+                    'Accept-Language': 'RU',
+                    'Authorization': `Bearer ${access_token}`
+                }
+            });
+            
+            if (!response.ok) {
+                if (response.status === 401) {
+                    throw new Error('Unauthorized. Please login again.');
+                }
+                throw new Error('Failed to fetch quiz');
+            }
+            
+            const data = await response.json();
+            
+            // Transform the API response to match the expected format
+            const quizData = {
+                id: quizId,
+                content: data.processed_json.quiz.map(question => ({
+                    title: question.title,
+                    variants: question.variants,
+                    correctVariantIndex: question.correctVariantIndex,
+                    matchWith: question.matchWith
+                }))
+            };
+            
+            return quizData;
+        } catch (error) {
+            console.error('Error fetching quiz:', error);
+            throw error;
+        }
     },
 
     submitQuizResults: async (quizId, results) => {
-        // In the future, this will be a real API call
-        // const response = await axios.post('/api/quiz/pass', {
-        //     quizId,
-        //     ...results
-        // });
-        // return response.data;
-        
-        // For now, simulate API call
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({ success: true });
-            }, 1000);
-        });
+        try {
+            const token = localStorage.getItem('auth_tokens');
+            if (!token) {
+                throw new Error('No auth token found');
+            }
+
+            const { access_token } = JSON.parse(token);
+
+            const response = await fetch(`${API_URL}/modules/topics/${quizId}/pass`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${access_token}`
+                }
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    throw new Error('Unauthorized. Please login again.');
+                }
+                throw new Error('Failed to submit quiz results');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error submitting quiz results:', error);
+            throw error;
+        }
     }
 }; 

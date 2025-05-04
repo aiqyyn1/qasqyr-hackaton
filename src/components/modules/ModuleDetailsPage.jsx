@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, Link, useParams, useLocation } from 'react-router-dom';
+import LoadingScreen from '../LoadingScreen';
 
 export default function ModuleDetailsPage() {
   const { id } = useParams();
@@ -25,6 +26,8 @@ export default function ModuleDetailsPage() {
   const [showPopup, setShowPopup] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const API_URL = 'http://172.20.10.2:8080/api';
 
@@ -216,19 +219,18 @@ export default function ModuleDetailsPage() {
     }
 
     try {
+      setIsUploading(true);
+      setUploadProgress(0);
+
       const formData = new FormData();
-      // API wants 'file' for the file
       formData.append('file', file);
 
-      // If topics exist, use the current index and topic ID
       if (topics.length > 0) {
         const uploadIndex = currentTestIndex;
         formData.append('index', -1);
 
-        // Get the topic ID for the current index if available
         const topicId = uploadIndex >= 0 && topics[uploadIndex] ? topics[uploadIndex].id : null;
 
-        // Add topicId to request if available
         if (topicId) {
           formData.append('topicId', topicId);
           console.log('Including topicId in upload:', topicId);
@@ -236,60 +238,58 @@ export default function ModuleDetailsPage() {
           console.log('No topicId available for index:', uploadIndex);
         }
       } else {
-        // For empty modules, just pass index 0
         formData.append('index', '0');
         console.log('Empty module, using index 0');
       }
 
-      // The endpoint with no query params to avoid primitive type error
       const url = `${API_URL}/modules/${id}/upload`;
       console.log('Upload URL:', url);
 
-      console.log('Sending upload request');
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${tokens.access_token}`,
-          // Don't set Content-Type header, it will be set automatically with the proper boundary
-        },
-        body: formData
+      const xhr = new XMLHttpRequest();
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const progress = (event.loaded / event.total) * 100;
+          setUploadProgress(progress);
+        }
       });
-      console.log('Upload response status:', response.status);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Upload error response:', errorText);
-        throw new Error(`Failed to upload file: ${response.status} ${errorText}`);
-      }
+      const response = await new Promise((resolve, reject) => {
+        xhr.open('POST', url);
+        xhr.setRequestHeader('Authorization', `Bearer ${tokens.access_token}`);
+        
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(xhr.response);
+          } else {
+            reject(new Error(xhr.statusText));
+          }
+        };
+        
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send(formData);
+      });
 
       console.log('Upload successful!');
 
-      // For modules with topics, add a new topic after successful upload
       if (topics.length > 0) {
-        // Add new topic after successful upload
         const newTopicName = `Topic ${topics.length + 1}`;
         const newTopic = {
-          id: `generated-${Date.now()}`, // Generate a temporary ID
+          id: `generated-${Date.now()}`,
           name: newTopicName,
           index: topics.length
         };
 
-        // Add the new topic to the topics array
         setTopics(prevTopics => [...prevTopics, newTopic]);
 
-        // Mark current topic as completed
         if (currentTestIndex >= 0 && topics[currentTestIndex]) {
           setCompletedTests(prev => [...prev, topics[currentTestIndex].id]);
         }
 
-        // Move to the newly added topic
         setCurrentTestIndex(topics.length);
       }
 
-      // Set uploaded file to show success message
       setUploadedFile(file);
 
-      // Clear the upload message after 8 seconds
       setTimeout(() => {
         setUploadedFile(null);
       }, 8000);
@@ -297,6 +297,9 @@ export default function ModuleDetailsPage() {
     } catch (error) {
       console.error('Error uploading file:', error);
       alert(`Failed to upload file: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -363,10 +366,26 @@ export default function ModuleDetailsPage() {
       const scrollX = window.scrollX || document.documentElement.scrollLeft;
       const scrollY = window.scrollY || document.documentElement.scrollTop;
 
+      // Проверяем, является ли это последним элементом
+      const isLastElement = hoveredCircle === topics.length - 1;
+      
+      // Если это последний элемент и он находится слишком низко, корректируем позицию
+      let popupY = absoluteY + scrollY;
+      if (isLastElement) {
+        const popupHeight = 200; // Примерная высота popup
+        const windowHeight = window.innerHeight;
+        const bottomSpace = windowHeight - (absoluteY + scrollY);
+        
+        if (bottomSpace < popupHeight) {
+          // Если места внизу недостаточно, поднимаем popup выше
+          popupY = absoluteY + scrollY - (popupHeight - bottomSpace) - 20; // 20px отступ
+        }
+      }
+
       // Устанавливаем позицию popup СЛЕВА от выбранного круга
       setPopupPosition({
         x: absoluteX - circlePos.radius - 240 + scrollX, // 220px ширина + 20px отступ
-        y: absoluteY + scrollY
+        y: popupY
       });
 
       // Показываем popup
@@ -623,6 +642,11 @@ export default function ModuleDetailsPage() {
 
   return (
     <div className="flex flex-col items-center w-full min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-8 sm:p-10">
+      {isUploading && (
+        <LoadingScreen 
+          message={`Загрузка файла... ${Math.round(uploadProgress)}%`}
+        />
+      )}
       <div className="flex justify-between items-center mb-14 w-full max-w-5xl px-4">
         <div className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-indigo-600 bg-clip-text text-transparent p-2">
           Qasqyr AI
@@ -824,6 +848,7 @@ export default function ModuleDetailsPage() {
 
             <div className="flex justify-between gap-2">
               <button
+
                 onClick={closePopup}
                 className="w-full px-2 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-sm"
               >

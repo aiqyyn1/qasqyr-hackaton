@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { quizService } from '../../services/quizService';
 
 const PassingQuiz = ({ quizId, onComplete }) => {
+    const navigate = useNavigate();
     const [quizData, setQuizData] = useState(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -117,6 +119,7 @@ const PassingQuiz = ({ quizId, onComplete }) => {
                 totalQuestions: quizData.content.length,
                 answers
             });
+            navigate('/modules');
             onComplete();
         } catch (error) {
             console.error('Error submitting quiz results:', error);

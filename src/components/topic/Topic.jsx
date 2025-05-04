@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { parser } from "../../utills/parser/parser";
 import { ArcherContainer } from "react-archer";
+import PassingQuiz from "../modules/PassingQuiz";
 
 // Chat component
 function Chat({ messages, onSendMessage }) {
@@ -86,7 +87,7 @@ export default function Topic() {
   const [messages, setMessages] = useState([]);
   const contentRef = useRef(null);
   const explainButtonRef = useRef(null);
-  const [showQuizPopup, setShowQuizPopup] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
 
   // Handle text selection in the content area
   const handleContentSelection = (e) => {
@@ -223,84 +224,66 @@ export default function Topic() {
   }, [id]);
 
   const handleQuizClick = () => {
-    // В будущем здесь можно будет перенаправить на страницу квиза
-    // или загрузить вопросы с сервера
-    setShowQuizPopup(!showQuizPopup);
+    setShowQuiz(true);
+  };
+
+  const handleQuizComplete = () => {
+    setShowQuiz(false);
   };
 
   return (
     <div className="flex h-[100vh] gap-4">
-      <div
-        ref={contentRef}
-        className="flex-1 bg-gray-900 rounded-lg p-4 overflow-auto text-white relative"
-        onMouseUp={handleContentSelection}
-      >
-        {/* Плавающая кнопка Quiz */}
-        <div className="absolute top-4 right-4 z-10">
-          <button
-            onClick={handleQuizClick}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105"
-            title="Пройти тест по теме"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
+      {showQuiz ? (
+        <div className="flex-1 bg-gray-900 rounded-lg p-4 overflow-auto">
+          <PassingQuiz 
+            quizId={id} 
+            onComplete={handleQuizComplete}
+          />
         </div>
-
-        {/* Popup с квизом */}
-        {showQuizPopup && (
-          <div className="absolute top-16 right-4 bg-gray-800 rounded-lg shadow-xl p-4 z-20 w-80 border border-gray-700">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-lg font-semibold text-white">Проверь свои знания</h3>
+      ) : (
+        <>
+          <div
+            ref={contentRef}
+            className="flex-1 bg-gray-900 rounded-lg p-4 overflow-auto text-white relative"
+            onMouseUp={handleContentSelection}
+          >
+            {/* Плавающая кнопка Quiz */}
+            <div className="absolute top-4 right-4 z-10">
               <button
-                onClick={() => setShowQuizPopup(false)}
-                className="text-gray-400 hover:text-white"
+                onClick={handleQuizClick}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105"
+                title="Пройти тест по теме"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </button>
             </div>
 
-            <p className="text-gray-300 text-sm mb-4">
-              Закрепите материал по теме, пройдя короткий тест из 5 вопросов.
-            </p>
-
-            <button
-              onClick={() => {
-                setShowQuizPopup(false);
-                alert('Функция Quiz будет доступна в следующем обновлении!');
-              }}
-              className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium transition-colors"
-            >
-              Начать тест
-            </button>
+            {loading ? "Загрузка..." : content ? <ArcherContainer>{parser(content)}</ArcherContainer> : "Нет данных"}
+            {selectedText && (
+              <div
+                ref={explainButtonRef}
+                className="absolute z-10"
+                style={{
+                  left: `${selectionPosition.x}px`,
+                  top: `${selectionPosition.y}px`,
+                }}
+              >
+                <button
+                  onClick={() => handleExplain(selectedText)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg"
+                >
+                  Объяснить
+                </button>
+              </div>
+            )}
           </div>
-        )}
-
-        {loading ? "Загрузка..." : content ? <ArcherContainer>{parser(content)}</ArcherContainer> : "Нет данных"}
-        {selectedText && (
-          <div
-            ref={explainButtonRef}
-            className="absolute z-10"
-            style={{
-              left: `${selectionPosition.x}px`,
-              top: `${selectionPosition.y}px`,
-            }}
-          >
-            <button
-              onClick={() => handleExplain(selectedText)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg"
-            >
-              Объяснить
-            </button>
+          <div className="w-[400px] min-w-[300px] bg-gray-800 rounded-lg p-2 flex flex-col text-white">
+            <Chat messages={messages} onSendMessage={handleSendMessage} />
           </div>
-        )}
-      </div>
-      <div className="w-[400px] min-w-[300px] bg-gray-800 rounded-lg p-2 flex flex-col text-white">
-        <Chat messages={messages} onSendMessage={handleSendMessage} />
-      </div>
+        </>
+      )}
     </div>
   );
 }
