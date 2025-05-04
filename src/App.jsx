@@ -7,6 +7,9 @@ import Signup from './components/auth/Signup'
 import ProfilePage from './components/profile/ProfilePage'
 import ModuleDetailsPage from './components/modules/ModuleDetailsPage'
 import TeacherPanel from './components/teacher/TeacherPanel'
+import TeacherProfile from './components/teacher/TeacherProfile'
+import SettingsPage from './components/settings/SettingsPage'
+import PomodoroTimer from './components/pomodoro/PomodoroTimer'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Topic from "./components/topic/Topic.jsx";
 
@@ -54,6 +57,11 @@ function App() {
                 <ProfilePage />
               </ProtectedRoute>
             } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <SettingsPage />
+              </ProtectedRoute>
+            } />
             <Route path="/topics/:id" element={
               <ProtectedRoute>
                 <Topic />
@@ -69,12 +77,20 @@ function App() {
                 <TeacherPanel />
               </TeacherRoute>
             } />
+            <Route path="/teacher/profile" element={
+              <TeacherRoute>
+                <TeacherProfile />
+              </TeacherRoute>
+            } />
             <Route path="/" element={
               <ProtectedRoute>
                 <TestProgressSystem />
               </ProtectedRoute>
             } />
           </Routes>
+
+          {/* Pomodoro Timer (always rendered, but only displays when enabled in settings) */}
+          <PomodoroTimer />
         </div>
       </Router>
     </AuthProvider>

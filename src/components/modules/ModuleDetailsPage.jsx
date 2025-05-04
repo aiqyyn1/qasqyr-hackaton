@@ -22,6 +22,9 @@ export default function ModuleDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [topics, setTopics] = useState([]);
+  const [showPopup, setShowPopup] = useState(false);
+  const [selectedTopic, setSelectedTopic] = useState(null);
+  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
 
   const API_URL = 'http://172.20.10.2:8080/api';
 
@@ -317,8 +320,8 @@ export default function ModuleDetailsPage() {
 
     const positions = getCirclePositions();
 
-    // Only allow hovering on current or previous circles
-    for (let i = 0; i <= currentTestIndex; i++) {
+    // Проверяем все круги, а не только текущий и предыдущие
+    for (let i = 0; i < positions.length; i++) {
       const circle = positions[i];
       if (!circle) continue;
 
@@ -341,10 +344,47 @@ export default function ModuleDetailsPage() {
   const handleCanvasClick = (e) => {
     console.log('Canvas clicked, hovered circle:', hoveredCircle);
 
-    // If hovering over a circle, navigate to the topic page
+    // Если навели на круг, показываем popup с информацией о теме
     if (hoveredCircle !== null && topics[hoveredCircle]) {
-      const topicId = topics[hoveredCircle].id;
-      navigate(`/topics/${topicId}`);
+      const topic = topics[hoveredCircle];
+      setSelectedTopic(topic);
+
+      // Рассчитываем позицию для popup относительно окна браузера
+      const canvas = canvasRef.current;
+      const rect = canvas.getBoundingClientRect();
+      const positions = getCirclePositions();
+      const circlePos = positions[hoveredCircle];
+
+      // Вычисляем абсолютную позицию круга в окне браузера
+      const absoluteX = rect.left + circlePos.x;
+      const absoluteY = rect.top + circlePos.y;
+
+      // Вычисляем абсолютную позицию относительно документа (с учетом прокрутки)
+      const scrollX = window.scrollX || document.documentElement.scrollLeft;
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+
+      // Устанавливаем позицию popup СЛЕВА от выбранного круга
+      setPopupPosition({
+        x: absoluteX - circlePos.radius - 240 + scrollX, // 220px ширина + 20px отступ
+        y: absoluteY + scrollY
+      });
+
+      // Показываем popup
+      setShowPopup(true);
+    }
+  };
+
+  // Функция для закрытия popup
+  const closePopup = () => {
+    setShowPopup(false);
+    setSelectedTopic(null);
+  };
+
+  // Функция для перехода к теме после нажатия на кнопку в popup
+  const navigateToTopic = () => {
+    if (selectedTopic) {
+      navigate(`/topics/${selectedTopic.id}`);
+      closePopup();
     }
   };
 
@@ -438,10 +478,9 @@ export default function ModuleDetailsPage() {
 
         const pos = positions[i];
         const isHovered = i === hoveredCircle;
-        const isAccessible = i <= currentTestIndex;
 
-        // Draw glow for hovered circles if they are accessible
-        if (isHovered && isAccessible) {
+        // Draw glow for hovered circles
+        if (isHovered) {
           ctx.beginPath();
           ctx.arc(pos.x, pos.y, pos.radius + pos.radius * 0.4, 0, Math.PI * 2);
           ctx.fillStyle = 'rgba(79, 70, 229, 0.3)';
@@ -754,6 +793,53 @@ export default function ModuleDetailsPage() {
           </div>
         )}
       </div>
+
+      {/* Popup для темы - обновленный стиль и позиционирование */}
+      {showPopup && selectedTopic && (
+        <div
+          className="fixed bg-gray-900 border border-gray-700 rounded-lg shadow-xl p-4 z-50"
+          style={{
+            left: `${popupPosition.x}px`,
+            top: `${popupPosition.y}px`,
+            transform: 'translate(0, -50%)', // Центрировать по вертикали
+          
+          }}
+        >
+          <button
+            className="absolute top-2 right-2 text-gray-400 hover:text-white"
+            onClick={closePopup}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </button>
+
+          {/* Заголовок popup точно как на скриншоте */}
+          <h3 className="text-xl font-semibold text-white">{selectedTopic.name}</h3>
+
+          <div className='w-full'>
+            <div className="text-gray-300 text-sm mb-4">
+              Тема #{selectedTopic.index + 1}
+            </div>
+
+            <div className="flex justify-between gap-2">
+              <button
+                onClick={closePopup}
+                className="w-full px-2 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-sm"
+              >
+                Редактировать
+              </button>
+
+              <button
+                onClick={navigateToTopic}
+                className=" w-full  px-1  py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm text-center"
+              >
+                Перейти к теме
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

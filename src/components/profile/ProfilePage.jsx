@@ -196,9 +196,14 @@ export default function ProfilePage() {
             Qasqyr AI
           </Link>
           <h1 className="text-2xl font-medium">Мой Профиль</h1>
-          <Link to="/" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors duration-200">
-            К занятиям
-          </Link>
+          <div className="flex space-x-4">
+            <Link to="/settings" className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors duration-200">
+              Настройки
+            </Link>
+            <Link to="/" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors duration-200">
+              К занятиям
+            </Link>
+          </div>
         </div>
 
         {profile && (

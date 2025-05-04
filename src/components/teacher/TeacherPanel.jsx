@@ -150,10 +150,16 @@ export default function TeacherPanel() {
                 <span className="font-medium text-blue-300">{currentUser.username || currentUser.email || "Преподаватель"}</span>
               </div>
               <Link
-                to="/profile"
-                className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors duration-200"
+                to="/teacher/profile"
+                className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors duration-200"
               >
                 Мой Профиль
+              </Link>
+              <Link
+                to="/settings"
+                className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors duration-200"
+              >
+                Настройки
               </Link>
               <button
                 onClick={handleLogout}
