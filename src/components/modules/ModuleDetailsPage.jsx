@@ -223,7 +223,7 @@ export default function ModuleDetailsPage() {
       // If topics exist, use the current index and topic ID
       if (topics.length > 0) {
         const uploadIndex = currentTestIndex;
-        formData.append('index', uploadIndex.toString());
+        formData.append('index', -1);
 
         // Get the topic ID for the current index if available
         const topicId = uploadIndex >= 0 && topics[uploadIndex] ? topics[uploadIndex].id : null;

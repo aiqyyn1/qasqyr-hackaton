@@ -12,6 +12,8 @@ import SettingsPage from './components/settings/SettingsPage'
 import PomodoroTimer from './components/pomodoro/PomodoroTimer'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Topic from "./components/topic/Topic.jsx";
+import PassingQuiz from "./components/modules/PassingQuiz.jsx";
+import WelcomePage from "./components/WelcomePage.jsx";
 
 function App() {
   // Protected route component
@@ -52,6 +54,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/" element={<WelcomePage />} />
             <Route path="/profile" element={
               <ProtectedRoute>
                 <ProfilePage />
@@ -65,6 +68,11 @@ function App() {
             <Route path="/topics/:id" element={
               <ProtectedRoute>
                 <Topic />
+              </ProtectedRoute>
+            } />
+            <Route path="/pass-topic/:id" element={
+              <ProtectedRoute>
+                <PassingQuiz />
               </ProtectedRoute>
             } />
             <Route path="/modules/:id" element={
