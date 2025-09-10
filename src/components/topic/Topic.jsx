@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { parser } from "../../utills/parser/parser";
-import { ArcherContainer } from "react-archer";
+
 import PassingQuiz from "../modules/PassingQuiz";
 
 // Chat component
@@ -260,7 +260,7 @@ export default function Topic() {
               </button>
             </div>
 
-            {loading ? "Загрузка..." : content ? <ArcherContainer>{parser(content)}</ArcherContainer> : "Нет данных"}
+{loading ? "Загрузка..." : content ? parser(content) : "Нет данных"}
             {selectedText && (
               <div
                 ref={explainButtonRef}
