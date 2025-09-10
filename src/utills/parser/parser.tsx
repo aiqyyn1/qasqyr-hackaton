@@ -1,7 +1,8 @@
 import {
     BaseNode,
     CenteredContainer,
-    IconText as IconTextType, Link,
+    IconText as IconTextType, 
+    Link,
     NodeType,
     Stack,
     Text,
@@ -12,9 +13,6 @@ import {TextNode} from "./nodes/TextNode";
 import {IconText} from "./nodes/IconText";
 import {TitledContainerNode} from "./nodes/TitledContainerNode";
 import CenteredContainerNode from "./nodes/CenteredContainerNode";
-import {ArcherElement} from "react-archer";
-
-
 
 const isShowComponentName = false;
 
@@ -24,10 +22,8 @@ const isIconText = (node: BaseNode): node is IconTextType => node.nodeType === N
 const isTitledContainer = (node: BaseNode): node is TitledContainer => node.nodeType === NodeType.TITLED_CONTAINER;
 const isCenteredContainer = (node: BaseNode): node is CenteredContainer => node.nodeType === NodeType.CENTERED_CONTAINER;
 
-
-
 /**
- * Renders the given BaseNode tree dynamically and connects elements using react-archer.
+ * Renders the given BaseNode tree dynamically.
  */
 export const parser = (obj: BaseNode): React.ReactNode => {
     const renderChildren = (children: BaseNode[] | undefined) => {
@@ -36,89 +32,66 @@ export const parser = (obj: BaseNode): React.ReactNode => {
 
     if (isStackNode(obj)) {
         return (
-            <ArcherElement
+            <div
                 key={obj.id}
                 id={obj.id}
-                relations={
-                    obj.links?.filter((l) => {
-                        return l.fromId == obj.id;
-                    }).map((link: Link) => {
-                        return {
-                            targetId: link.toId,
-                            sourceAnchor: "bottom",
-                            targetAnchor: "top",
-                        }
-                    }) || []
-                }
+                data-node-type="stack"
+                className="relative"
             >
                 <StackNode obj={obj}>{renderChildren(obj.children)}</StackNode>
-            </ArcherElement>
+            </div>
         );
     }
 
     if (isTextNode(obj)) {
         return (
-            <ArcherElement
+            <div
                 key={obj.id}
                 id={obj.id}
+                data-node-type="text"
+                className="relative"
             >
                 <TextNode obj={obj}/>
-            </ArcherElement>
+            </div>
         );
     }
 
     if (isIconText(obj)) {
         return (
-            <ArcherElement
+            <div
                 key={obj.id}
                 id={obj.id}
+                data-node-type="icon-text"
+                className="relative"
             >
                 <IconText obj={obj}/>
-            </ArcherElement>
+            </div>
         );
     }
 
     if (isTitledContainer(obj)) {
         return (
-            <ArcherElement
+            <div
                 key={obj.id}
                 id={obj.id}
-                relations={
-                    obj.links?.filter((l) => {
-                        return l.fromId == obj.id;
-                    }).map((link: Link) => {
-                        return {
-                            targetId: link.toId,
-                            sourceAnchor: "bottom",
-                            targetAnchor: "top",
-                        }
-                    }) || []
-                }
+                data-node-type="titled-container"
+                className="relative"
             >
                 <TitledContainerNode obj={obj}/>
-            </ArcherElement>
+            </div>
         );
     }
 
     if (isCenteredContainer(obj)) {
         return (
-            <ArcherElement
+            <div
                 key={obj.id}
                 id={obj.id}
-                relations={
-                    obj.links?.filter((l) => {
-                        return l.fromId == obj.id;
-                    }).map((link: Link) => {
-                        return {
-                            targetId: link.toId,
-                            sourceAnchor: "bottom",
-                            targetAnchor: "top",
-                        }
-                    }) || []
-                }
+                data-node-type="centered-container"
+                className="relative"
             >
                 <CenteredContainerNode obj={obj}/>
-            </ArcherElement>
+            </div>
         );
     }
 
